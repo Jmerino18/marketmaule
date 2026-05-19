@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build
+dist/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Database
+*.sql.dump
+backup_*.sql
+
+# SSL (private)
+ssl/*.pem
+ssl/*.key
+
+# Uploads
+uploads/
+
+# Cache
+.cache/
+.parcel-cache/

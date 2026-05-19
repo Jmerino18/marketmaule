@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # Frontend + Backend (Node.js)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: marketmaule-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=mysql://marketmaule:marketmaule_password@db:3306/marketmaule
+      - JWT_SECRET=marketmaule-jwt-secret-key-2026
+      - OAUTH_REDIRECT_URL=https://marketmaule.tudominio.cl/api/auth/callback
+      - PORT=3000
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - marketmaule-network
+    volumes:
+      - ./uploads:/app/uploads
+
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: marketmaule-db
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password_marketmaule
+      - MYSQL_DATABASE=marketmaule
+      - MYSQL_USER=marketmaule
+      - MYSQL_PASSWORD=marketmaule_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - marketmaule-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+      interval: 5s
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: marketmaule-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - app
+    networks:
+      - marketmaule-network
+
+volumes:
+  mysql-data:
+
+networks:
+  marketmaule-network:
+    driver: bridge
